@@ -28,13 +28,14 @@ interface PostProps {
 }
 
 export default function Post(): JSX.Element {
-  return;
-  <>
-    <Head>
-      <title>Blog | Home</title>
-    </Head>
-    <h1>Página de post</h1>;
-  </>;
+  return (
+    <>
+      <Head>
+        <title>Blog | Home</title>
+      </Head>
+      <h1>Página de post</h1>;
+    </>
+  );
 }
 
 // export const getStaticPaths = async () => {

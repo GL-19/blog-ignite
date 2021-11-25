@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
 
@@ -32,28 +35,71 @@ export default function Home(props: HomeProps): JSX.Element {
     postsPagination: { results, next_page },
   } = props;
 
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [nextPage, setNextPage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPosts(results);
+    setNextPage(next_page);
+  }, [results, next_page]);
+
+  async function handleLoadMorePosts(): Promise<void> {
+    const response = await fetch(next_page);
+    const data = await response.json();
+
+    // console.log(data);
+
+    const newPosts = data.results.map(post => {
+      return {
+        uid: post.uid,
+        first_publication_date: post.first_publication_date,
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        },
+      };
+    });
+
+    setPosts([...posts, ...newPosts]);
+    setNextPage(data?.next_page);
+  }
   return (
     <>
       <Head>
         <title>Blog | Home</title>
       </Head>
       <main className={styles.container}>
-        {results?.map(post => (
+        {posts?.map(post => (
           <div className={styles.post} key={post.uid}>
             <Link href={`/post/${post.uid}`}>
               <a>
-                <h1>{post.data.title}</h1>
-                <p>{post.data.subtitle}</p>
+                <h1>{post.data?.title}</h1>
+                <p>{post.data?.subtitle}</p>
                 <div className={styles.info}>
-                  <p>{post.first_publication_date}</p>
-                  <p>{post.data.author}</p>
+                  <p>
+                    {format(
+                      new Date(post.first_publication_date),
+                      ' dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
+                  </p>
+                  <p>{post.data?.author}</p>
                 </div>
               </a>
             </Link>
           </div>
         ))}
 
-        {next_page ? <p className={styles.load}>Carregar mais posts</p> : ''}
+        {nextPage ? (
+          <p className={styles.load} onClick={handleLoadMorePosts}>
+            Carregar mais posts
+          </p>
+        ) : (
+          ''
+        )}
 
         <button type="button">Sair do preview</button>
       </main>
@@ -61,14 +107,18 @@ export default function Home(props: HomeProps): JSX.Element {
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async ({
+  preview = false,
+  previewData = null,
+}) => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 100,
+      pageSize: 1,
+      ref: previewData?.red ?? null,
     }
   );
 
@@ -77,13 +127,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: new Date(
-        post.last_publication_date
-      ).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      }),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -92,14 +136,24 @@ export const getStaticProps: GetStaticProps = async () => {
     };
   });
 
-  console.log(JSON.stringify(posts, null, 2));
+  // console.log(JSON.stringify(posts, null, 2));
 
   return {
     props: {
       postsPagination: {
-        next_page: null,
-        results: [...posts],
+        next_page: postsResponse.next_page,
+        results: posts,
       },
+      preview,
     },
+    revalidate: 60 * 10, // 10 minutes
   };
 };
+
+/* new Date(
+  post.first_publication_date
+).toLocaleDateString('pt-BR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+}), */

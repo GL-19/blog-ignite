@@ -3,6 +3,7 @@ import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
+import { FiUser, FiCalendar } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
@@ -47,9 +48,7 @@ export default function Home(props: HomeProps): JSX.Element {
     const response = await fetch(next_page);
     const data = await response.json();
 
-    // console.log(data);
-
-    const newPosts = data.results.map(post => {
+    const newPosts = data.results.map((post) => {
       return {
         uid: post.uid,
         first_publication_date: post.first_publication_date,
@@ -70,7 +69,7 @@ export default function Home(props: HomeProps): JSX.Element {
         <title>Blog | Home</title>
       </Head>
       <main className={styles.container}>
-        {posts?.map(post => (
+        {posts?.map((post) => (
           <div className={styles.post} key={post.uid}>
             <Link href={`/post/${post.uid}`}>
               <a>
@@ -78,6 +77,7 @@ export default function Home(props: HomeProps): JSX.Element {
                 <p>{post.data?.subtitle}</p>
                 <div className={styles.info}>
                   <p>
+                    <FiCalendar />
                     {format(
                       new Date(post.first_publication_date),
                       ' dd MMM yyyy',
@@ -86,7 +86,10 @@ export default function Home(props: HomeProps): JSX.Element {
                       }
                     )}
                   </p>
-                  <p>{post.data?.author}</p>
+                  <p>
+                    <FiUser width="20px" />
+                    {post.data?.author}
+                  </p>
                 </div>
               </a>
             </Link>
@@ -107,10 +110,7 @@ export default function Home(props: HomeProps): JSX.Element {
   );
 }
 
-export const getStaticProps: GetStaticProps<HomeProps> = async ({
-  preview = false,
-  previewData = null,
-}) => {
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
@@ -118,13 +118,10 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
       pageSize: 1,
-      ref: previewData?.red ?? null,
     }
   );
 
-  // console.log(JSON.stringify(postsResponse, null, 2));
-
-  const posts = postsResponse.results.map(post => {
+  const posts = postsResponse.results.map((post) => {
     return {
       uid: post.uid,
       first_publication_date: post.first_publication_date,
@@ -136,24 +133,13 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({
     };
   });
 
-  // console.log(JSON.stringify(posts, null, 2));
-
   return {
     props: {
       postsPagination: {
         next_page: postsResponse.next_page,
         results: posts,
       },
-      preview,
     },
     revalidate: 60 * 10, // 10 minutes
   };
 };
-
-/* new Date(
-  post.first_publication_date
-).toLocaleDateString('pt-BR', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-}), */

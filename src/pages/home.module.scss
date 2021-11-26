@@ -6,21 +6,29 @@
   .post {
     h1 {
       font-size: 2rem;
-      line-height: 2.4rem;
+      line-height: 2.8rem;
     }
 
     p {
       font-size: 1.128rem;
+      line-height: 1.5rem;
     }
 
     .info {
       display: flex;
       align-items: center;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
 
       p {
         color: var(--gray-500);
         font-size: 1rem;
+
+        svg {
+          width: 1.75rem;
+          height: 1.75rem;
+          margin-right: 0.5rem;
+          vertical-align: middle;
+        }
 
         & + p {
           margin-left: 1rem;

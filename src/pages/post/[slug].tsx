@@ -6,10 +6,8 @@ import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
-import Prismic from '@prismicio/client';
 import { getPrismicClient } from '../../services/prismic';
 
-import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 
 interface PostTextSection {
@@ -76,6 +74,8 @@ export default function Post({ post }: PostProps): JSX.Element {
       <main className={styles.container}>
         <img src={post.data.banner.url} alt="banner" />
         <article className={styles.content}>
+          <h1>{post.data.title}</h1>
+
           <div className={styles.info}>
             <p>
               <FiCalendar />
@@ -93,11 +93,9 @@ export default function Post({ post }: PostProps): JSX.Element {
             </p>
           </div>
 
-          <h1>{post.data.title}</h1>
-
           {post.data.content.map((section, sectionIndex) => (
             <section key={sectionIndex}>
-              <h1>{section.heading}</h1>
+              <h2>{section.heading}</h2>
               {section.body.map((paragraph, paragraphIndex) => (
                 <p key={paragraphIndex}>{paragraph.text}</p>
               ))}
@@ -110,21 +108,6 @@ export default function Post({ post }: PostProps): JSX.Element {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const prismic = getPrismicClient();
-  const posts = await prismic.query(
-    [Prismic.Predicates.at('document.type', 'posts')],
-    {
-      fetch: [
-        'posts.title',
-        'posts.subtitle',
-        'posts.author',
-        'posts.banner',
-        'posts.content',
-      ],
-      pageSize: 2,
-    }
-  );
-
   return {
     paths: [
       { params: { slug: 'como-utilizar-hooks' } },
@@ -140,8 +123,6 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
   const prismic = getPrismicClient();
 
   const response = await prismic.getByUID('posts', String(slug), {});
-
-  // console.log(JSON.stringify(response, null, 2));
 
   const post = {
     first_publication_date: response.first_publication_date,

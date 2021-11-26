@@ -6,15 +6,20 @@
     width: 100%;
   }
 
+  h1 {
+    font-size: 3.42rem;
+    font-weight: 700;
+  }
+
   .content {
     max-width: 756px;
     padding: 0 2rem;
-    margin: 0 auto;
+    margin: 5rem auto 0;
 
     .info {
       display: flex;
       align-items: center;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
 
       p {
         color: var(--gray-500);
@@ -28,7 +33,28 @@
         }
 
         & + p {
-          margin-left: 1rem;
+          margin-left: 1.5rem;
+        }
+      }
+    }
+
+    section {
+      margin: 3rem 0;
+
+      h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 3.5rem;
+        margin-bottom: 3rem;
+      }
+
+      p {
+        font-size: 1.2857rem;
+        line-height: 1.8rem;
+        text-align: justify;
+
+        & + p {
+          margin-top: 1.5rem;
         }
       }
     }

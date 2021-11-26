@@ -3,13 +3,13 @@ import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
+
 import { FiUser, FiCalendar } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
 
-// import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
 
 interface Post {

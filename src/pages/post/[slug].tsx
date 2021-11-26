@@ -1,13 +1,23 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { FiUser, FiCalendar } from 'react-icons/fi';
+import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
+
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import Prismic from '@prismicio/client';
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+
+interface PostTextSection {
+  heading: string;
+  body: {
+    text: string;
+  }[];
+}
 
 interface Post {
   uid?: string;
@@ -32,6 +42,32 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <h1>Carregando...</h1>;
+  }
+
+  function calculateReadingTime(content: PostTextSection[]): string {
+    const totalWords = content.reduce((currentWords, currentSection) => {
+      const headingWords = currentSection.heading.split(' ').length;
+
+      const bodyWords = currentSection.body.reduce(
+        (currentBodyWords, currentParagraph) => {
+          const paragraphWords = currentParagraph.text.split(' ').length;
+          return currentBodyWords + paragraphWords;
+        },
+        0
+      );
+
+      return currentWords + headingWords + bodyWords;
+    }, 0);
+
+    const totalTime = Math.ceil(totalWords / 200);
+
+    return `${totalTime} min`;
+  }
+
   return (
     <>
       <Head>
@@ -48,8 +84,12 @@ export default function Post({ post }: PostProps): JSX.Element {
               })}
             </p>
             <p>
-              <FiUser width="20px" />
+              <FiUser />
               {post.data?.author}
+            </p>
+            <p>
+              <FiClock />
+              {calculateReadingTime(post.data.content)}
             </p>
           </div>
 
@@ -70,11 +110,27 @@ export default function Post({ post }: PostProps): JSX.Element {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  /* const prismic = getPrismicClient();
-  const posts = await prismic.query(TODO); */
+  const prismic = getPrismicClient();
+  const posts = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      fetch: [
+        'posts.title',
+        'posts.subtitle',
+        'posts.author',
+        'posts.banner',
+        'posts.content',
+      ],
+      pageSize: 2,
+    }
+  );
+
   return {
-    paths: [],
-    fallback: 'blocking',
+    paths: [
+      { params: { slug: 'como-utilizar-hooks' } },
+      { params: { slug: 'criando-um-app-cra-do-zero' } },
+    ],
+    fallback: true,
   };
 };
 
@@ -102,5 +158,6 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
     props: {
       post,
     },
+    revalidate: 60 * 60 * 24, // 1 dia
   };
 };

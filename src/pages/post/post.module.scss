@@ -10,5 +10,27 @@
     max-width: 756px;
     padding: 0 2rem;
     margin: 0 auto;
+
+    .info {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+
+      p {
+        color: var(--gray-500);
+        font-size: 1rem;
+
+        svg {
+          width: 1.5rem;
+          height: 1.5rem;
+          margin-right: 0.5rem;
+          vertical-align: middle;
+        }
+
+        & + p {
+          margin-left: 1rem;
+        }
+      }
+    }
   }
 }

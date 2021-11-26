@@ -87,7 +87,7 @@ export default function Home(props: HomeProps): JSX.Element {
                     )}
                   </p>
                   <p>
-                    <FiUser width="20px" />
+                    <FiUser />
                     {post.data?.author}
                   </p>
                 </div>

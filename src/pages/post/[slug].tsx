@@ -1,23 +1,17 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Link from 'next/link';
-import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
-import Prismic from '@prismicio/client';
 
+import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import { Navigation } from '../../components/Navigation';
+import { Info } from '../../components/Info';
+import { calculateReadingTime } from '../../utils/calculateReadingTime';
 import { getPrismicClient } from '../../services/prismic';
 
 import styles from './post.module.scss';
-
-interface PostTextSection {
-  heading: string;
-  body: {
-    text: string;
-  }[];
-}
 
 interface Post {
   uid?: string;
@@ -25,6 +19,7 @@ interface Post {
   last_publication_date: string | null;
   data: {
     title: string;
+    subtitle: string;
     banner: {
       url: string;
     };
@@ -38,118 +33,78 @@ interface Post {
   };
 }
 
-interface PostNavigation {
-  title: string;
-  uid: string;
-}
-
 interface PostProps {
   post: Post;
-  nextPost: PostNavigation | null;
-  previousPost: PostNavigation | null;
+  navigation: {
+    previousPost: null | {
+      title: string;
+      uid: string;
+    };
+    nextPost: null | {
+      title: string;
+      uid: string;
+    };
+  };
 }
 
-export default function Post({
-  post,
-  nextPost,
-  previousPost,
-}: PostProps): JSX.Element {
+export default function Post({ post, navigation }: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
-    return <h1>Carregando...</h1>;
+    return <h1 className={styles.loading}>Carregando...</h1>;
   }
 
-  function calculateReadingTime(content: PostTextSection[]): string {
-    const totalWords = content.reduce((currentWords, currentSection) => {
-      const headingWords = currentSection.heading.split(' ').length;
-
-      const bodyWords = currentSection.body.reduce(
-        (currentBodyWords, currentParagraph) => {
-          const paragraphWords = currentParagraph.text.split(' ').length;
-          return currentBodyWords + paragraphWords;
-        },
-        0
-      );
-
-      return currentWords + headingWords + bodyWords;
-    }, 0);
-
-    const totalTime = Math.ceil(totalWords / 200);
-
-    return `${totalTime} min`;
-  }
+  const formattedFirstPublicationDate = format(
+    new Date(post.first_publication_date),
+    ' dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  );
 
   return (
     <>
       <Head>
         <title>Blog | {post.data.title}</title>
       </Head>
+
       <main className={styles.container}>
         <img src={post.data.banner.url} alt="banner" />
+
         <article className={styles.content}>
           <h1>{post.data.title}</h1>
 
-          <div className={styles.info}>
-            <p>
-              <FiCalendar />
-              {format(new Date(post.first_publication_date), ' dd MMM yyyy', {
-                locale: ptBR,
-              })}
-            </p>
-            <p>
-              <FiUser />
-              {post.data?.author}
-            </p>
-            <p>
-              <FiClock />
-              {calculateReadingTime(post.data.content)}
-            </p>
-          </div>
+          <Info
+            createdAt={formattedFirstPublicationDate}
+            author={post.data?.author}
+            readingTime={calculateReadingTime(post.data.content)}
+          />
 
-          <p className={styles.publicationDate}>
-            {post?.last_publication_date &&
-              format(
+          {post.last_publication_date && (
+            <p className={styles.publicationDate}>
+              {format(
                 new Date(post.last_publication_date),
                 "'* editado em' dd MMM yyyy, 'às' HH:mm",
                 {
                   locale: ptBR,
                 }
               )}
-          </p>
+            </p>
+          )}
 
-          {post.data.content.map((section, sectionIndex) => (
-            <section key={sectionIndex}>
+          {post.data.content.map((section) => (
+            <section key={section.heading}>
               <h2>{section.heading}</h2>
-              {section.body.map((paragraph, paragraphIndex) => (
-                <p key={paragraphIndex}>{paragraph.text}</p>
+              {section.body.map((paragraph, index) => (
+                <p key={index}>{paragraph.text}</p>
               ))}
             </section>
           ))}
 
-          <nav>
-            <div className={styles.previousPost}>
-              {previousPost && (
-                <Link href={`/post/${previousPost.uid}`}>
-                  <a>
-                    <h2>{previousPost?.title}</h2>
-                    <p>Post anterior</p>
-                  </a>
-                </Link>
-              )}
-            </div>
-
-            <div className={styles.nextPost}>
-              {nextPost && (
-                <Link href={`/post/${nextPost.uid}`}>
-                  <a>
-                    <h2>{nextPost?.title}</h2>
-                    <p>Próximo post</p>
-                  </a>
-                </Link>
-              )}
-            </div>
-          </nav>
+          <Navigation
+            nextPost={navigation?.nextPost}
+            previousPost={navigation?.previousPost}
+          />
         </article>
       </main>
     </>
@@ -173,7 +128,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
 
   const response = await prismic.getByUID('posts', String(slug), {});
 
-  const post = {
+  const post: Post = {
     first_publication_date: response.first_publication_date,
     last_publication_date: response.last_publication_date,
     uid: response.uid,
@@ -206,7 +161,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
     }
   );
 
-  const nextPost: PostNavigation | null =
+  const nextPost =
     nextPostResponse?.results.length > 0
       ? {
           title: nextPostResponse.results[0]?.data?.title,
@@ -214,7 +169,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
         }
       : null;
 
-  const previousPost: PostNavigation | null =
+  const previousPost =
     previousPostResponse?.results.length > 0
       ? {
           title: previousPostResponse.results[0]?.data?.title,
@@ -225,8 +180,10 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
   return {
     props: {
       post,
-      previousPost,
-      nextPost,
+      navigation: {
+        nextPost,
+        previousPost,
+      },
     },
     revalidate: 60 * 60 * 24, // 1 dia
   };

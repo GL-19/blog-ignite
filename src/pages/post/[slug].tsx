@@ -20,6 +20,7 @@ interface PostTextSection {
 interface Post {
   uid?: string;
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -93,6 +94,17 @@ export default function Post({ post }: PostProps): JSX.Element {
             </p>
           </div>
 
+          <p className={styles.publicationDate}>
+            {post?.last_publication_date &&
+              format(
+                new Date(post.last_publication_date),
+                "'* editado em' dd MMM yyyy, 'às' HH:mm",
+                {
+                  locale: ptBR,
+                }
+              )}
+          </p>
+
           {post.data.content.map((section, sectionIndex) => (
             <section key={sectionIndex}>
               <h2>{section.heading}</h2>
@@ -126,6 +138,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
 
   const post = {
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     uid: response.uid,
     data: {
       title: response.data.title,

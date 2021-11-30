@@ -45,7 +45,7 @@ export default function Home(props: HomeProps): JSX.Element {
   }, [results, next_page]);
 
   async function handleLoadMorePosts(): Promise<void> {
-    const response = await fetch(next_page);
+    const response = await fetch(nextPage);
     const data = await response.json();
 
     const newPosts = data.results.map((post) => {
@@ -63,6 +63,7 @@ export default function Home(props: HomeProps): JSX.Element {
     setPosts([...posts, ...newPosts]);
     setNextPage(data?.next_page);
   }
+
   return (
     <>
       <Head>
@@ -117,7 +118,7 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     [Prismic.Predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 1,
+      pageSize: 2,
     }
   );
 

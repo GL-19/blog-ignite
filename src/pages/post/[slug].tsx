@@ -2,6 +2,7 @@ import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
+import Prismic from '@prismicio/client';
 
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
@@ -36,11 +37,22 @@ interface Post {
   };
 }
 
-interface PostProps {
-  post: Post;
+interface PostNavigation {
+  title: string;
+  uid: string;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+interface PostProps {
+  post: Post;
+  nextPost: PostNavigation;
+  previousPost: PostNavigation;
+}
+
+export default function Post({
+  post,
+  nextPost,
+  previousPost,
+}: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -113,6 +125,11 @@ export default function Post({ post }: PostProps): JSX.Element {
               ))}
             </section>
           ))}
+
+          <nav>
+            <p>{previousPost.title}</p>
+            <p>{nextPost.title}</p>
+          </nav>
         </article>
       </main>
     </>
@@ -149,9 +166,57 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
     },
   };
 
+  const nextPostResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date]',
+    }
+  );
+
+  const nextPost: PostNavigation = {
+    title:
+      nextPostResponse.results.length > 0
+        ? nextPostResponse.results[0]?.data?.title
+        : '',
+    uid:
+      nextPostResponse.results.length > 0
+        ? nextPostResponse.results[0]?.uid
+        : '',
+  };
+
+  const previousPostResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date desc]',
+    }
+  );
+
+  const previousPost: PostNavigation = {
+    title:
+      previousPostResponse.results.length > 0
+        ? previousPostResponse.results[0]?.data?.title
+        : '',
+    uid:
+      previousPostResponse.results.length > 0
+        ? previousPostResponse.results[0]?.uid
+        : '',
+  };
+
+  console.log('response', response);
+  console.log('next-post: ', nextPost);
+  console.log('previous-post: ', previousPost);
+
   return {
     props: {
       post,
+      previousPost,
+      nextPost,
     },
     revalidate: 60 * 60 * 24, // 1 dia
   };

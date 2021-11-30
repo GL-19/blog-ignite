@@ -1,6 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
 
@@ -44,8 +45,8 @@ interface PostNavigation {
 
 interface PostProps {
   post: Post;
-  nextPost: PostNavigation;
-  previousPost: PostNavigation;
+  nextPost: PostNavigation | null;
+  previousPost: PostNavigation | null;
 }
 
 export default function Post({
@@ -127,8 +128,27 @@ export default function Post({
           ))}
 
           <nav>
-            <p>{previousPost.title}</p>
-            <p>{nextPost.title}</p>
+            <div className={styles.previousPost}>
+              {previousPost && (
+                <Link href={`/post/${previousPost.uid}`}>
+                  <a>
+                    <h2>{previousPost?.title}</h2>
+                    <p>Post anterior</p>
+                  </a>
+                </Link>
+              )}
+            </div>
+
+            <div className={styles.nextPost}>
+              {nextPost && (
+                <Link href={`/post/${nextPost.uid}`}>
+                  <a>
+                    <h2>{nextPost?.title}</h2>
+                    <p>Próximo post</p>
+                  </a>
+                </Link>
+              )}
+            </div>
           </nav>
         </article>
       </main>
@@ -176,17 +196,6 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
     }
   );
 
-  const nextPost: PostNavigation = {
-    title:
-      nextPostResponse.results.length > 0
-        ? nextPostResponse.results[0]?.data?.title
-        : '',
-    uid:
-      nextPostResponse.results.length > 0
-        ? nextPostResponse.results[0]?.uid
-        : '',
-  };
-
   const previousPostResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
     {
@@ -197,20 +206,21 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
     }
   );
 
-  const previousPost: PostNavigation = {
-    title:
-      previousPostResponse.results.length > 0
-        ? previousPostResponse.results[0]?.data?.title
-        : '',
-    uid:
-      previousPostResponse.results.length > 0
-        ? previousPostResponse.results[0]?.uid
-        : '',
-  };
+  const nextPost: PostNavigation | null =
+    nextPostResponse?.results.length > 0
+      ? {
+          title: nextPostResponse.results[0]?.data?.title,
+          uid: nextPostResponse.results[0]?.uid,
+        }
+      : null;
 
-  console.log('response', response);
-  console.log('next-post: ', nextPost);
-  console.log('previous-post: ', previousPost);
+  const previousPost: PostNavigation | null =
+    previousPostResponse?.results.length > 0
+      ? {
+          title: previousPostResponse.results[0]?.data?.title,
+          uid: previousPostResponse.results[0]?.uid,
+        }
+      : null;
 
   return {
     props: {

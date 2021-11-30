@@ -64,5 +64,39 @@
         }
       }
     }
+
+    nav {
+      border-top: 1px groove var(--gray-300);
+      min-height: 10rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      h2 {
+        color: var(--gray-100);
+        font-size: 1.29rem;
+        font-weight: 400;
+      }
+
+      p {
+        color: var(--pink-500);
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+
+      div {
+        min-width: 0.2rem;
+      }
+
+      .previousPost {
+        text-align: left;
+      }
+
+      .nextPost {
+        text-align: right;
+      }
+    }
   }
 }

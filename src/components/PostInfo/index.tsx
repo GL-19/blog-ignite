@@ -1,17 +1,17 @@
 import { FiUser, FiCalendar, FiClock } from 'react-icons/fi';
 import styles from './styles.module.scss';
 
-interface InfoProps {
+interface PostInfoProps {
   createdAt: string;
   author: string;
   readingTime?: string;
 }
 
-export function Info({
+export function PostInfo({
   createdAt,
   author,
   readingTime,
-}: InfoProps): JSX.Element {
+}: PostInfoProps): JSX.Element {
   return (
     <div className={styles.container}>
       <p>

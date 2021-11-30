@@ -7,7 +7,7 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
-import { Info } from '../components/Info';
+import { PostInfo } from '../components/PostInfo';
 import { getPrismicClient } from '../services/prismic';
 
 import styles from './home.module.scss';
@@ -30,11 +30,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
 export default function Home(props: HomeProps): JSX.Element {
   const {
     postsPagination: { results, next_page },
+    preview,
   } = props;
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -78,7 +80,7 @@ export default function Home(props: HomeProps): JSX.Element {
               <a>
                 <h1>{post.data?.title}</h1>
                 <p>{post.data?.subtitle}</p>
-                <Info
+                <PostInfo
                   createdAt={format(
                     new Date(post.first_publication_date),
                     ' dd MMM yyyy',
@@ -104,14 +106,16 @@ export default function Home(props: HomeProps): JSX.Element {
         ) : (
           ''
         )}
-
-        <PreviewButton />
+        {preview && <PreviewButton exit_url="/api/exit-preview" />}
       </main>
     </>
   );
 }
 
-export const getStaticProps: GetStaticProps<HomeProps> = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async ({
+  previewData = null,
+  preview = false,
+}) => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
@@ -119,6 +123,7 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
       pageSize: 2,
+      ref: previewData?.ref ?? null,
     }
   );
 
@@ -140,6 +145,7 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
         next_page: postsResponse.next_page,
         results: posts,
       },
+      preview,
     },
     revalidate: 60 * 10, // 10 minutes
   };

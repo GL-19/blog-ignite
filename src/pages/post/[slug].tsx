@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 import { Navigation } from '../../components/Navigation';
-import { Info } from '../../components/Info';
+import { PostInfo } from '../../components/PostInfo';
 import { UtterancesComments } from '../../components/UtterancesComments';
 import { calculateReadingTime } from '../../utils/calculateReadingTime';
 import { getPrismicClient } from '../../services/prismic';
@@ -47,9 +47,14 @@ interface PostProps {
       uid: string;
     };
   };
+  preview: boolean;
 }
 
-export default function Post({ post, navigation }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  navigation,
+  preview,
+}: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -76,7 +81,7 @@ export default function Post({ post, navigation }: PostProps): JSX.Element {
         <article className={styles.content}>
           <h1>{post.data.title}</h1>
 
-          <Info
+          <PostInfo
             createdAt={formattedFirstPublicationDate}
             author={post.data?.author}
             readingTime={calculateReadingTime(post.data.content)}
@@ -110,7 +115,7 @@ export default function Post({ post, navigation }: PostProps): JSX.Element {
 
           <UtterancesComments />
 
-          <PreviewButton />
+          {preview && <PreviewButton exit_url="/api/exit-preview" />}
         </article>
       </main>
     </>
@@ -127,12 +132,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
+export const getStaticProps: GetStaticProps<PostProps> = async ({
+  params,
+  previewData = null,
+  preview = false,
+}) => {
   const { slug } = params;
 
   const prismic = getPrismicClient();
 
-  const response = await prismic.getByUID('posts', String(slug), {});
+  const response = await prismic.getByUID('posts', String(slug), {
+    ref: previewData?.ref ?? null,
+  });
 
   const post: Post = {
     first_publication_date: response.first_publication_date,
@@ -190,6 +201,7 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params }) => {
         nextPost,
         previousPost,
       },
+      preview,
     },
     revalidate: 60 * 60 * 24, // 1 dia
   };

@@ -12,28 +12,7 @@
     p {
       font-size: 1.128rem;
       line-height: 1.5rem;
-    }
-
-    .info {
-      display: flex;
-      align-items: center;
-      margin-top: 1rem;
-
-      p {
-        color: var(--gray-500);
-        font-size: 1rem;
-
-        svg {
-          width: 1.75rem;
-          height: 1.75rem;
-          margin-right: 0.5rem;
-          vertical-align: middle;
-        }
-
-        & + p {
-          margin-left: 1rem;
-        }
-      }
+      margin-bottom: 1rem;
     }
 
     & + .post {
@@ -42,6 +21,8 @@
   }
 
   .load {
+    background: transparent;
+    border: 0;
     margin-top: 2.5rem;
     color: var(--pink-500);
     font-weight: 600;
@@ -52,7 +33,7 @@
     }
   }
 
-  button {
+  .preview {
     margin-top: 3.5rem;
     background: var(--gray-100);
     width: 100%;

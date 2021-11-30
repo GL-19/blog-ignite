@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
-import Prismic from '@prismicio/client';
 
-import { FiUser, FiCalendar } from 'react-icons/fi';
+import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import { Info } from '../components/Info';
 import { getPrismicClient } from '../services/prismic';
 
 import styles from './home.module.scss';
@@ -69,6 +69,7 @@ export default function Home(props: HomeProps): JSX.Element {
       <Head>
         <title>Blog | Home</title>
       </Head>
+
       <main className={styles.container}>
         {posts?.map((post) => (
           <div className={styles.post} key={post.uid}>
@@ -76,36 +77,36 @@ export default function Home(props: HomeProps): JSX.Element {
               <a>
                 <h1>{post.data?.title}</h1>
                 <p>{post.data?.subtitle}</p>
-                <div className={styles.info}>
-                  <p>
-                    <FiCalendar />
-                    {format(
-                      new Date(post.first_publication_date),
-                      ' dd MMM yyyy',
-                      {
-                        locale: ptBR,
-                      }
-                    )}
-                  </p>
-                  <p>
-                    <FiUser />
-                    {post.data?.author}
-                  </p>
-                </div>
+                <Info
+                  createdAt={format(
+                    new Date(post.first_publication_date),
+                    ' dd MMM yyyy',
+                    {
+                      locale: ptBR,
+                    }
+                  )}
+                  author={post.data?.author}
+                />
               </a>
             </Link>
           </div>
         ))}
 
         {nextPage ? (
-          <p className={styles.load} onClick={handleLoadMorePosts}>
+          <button
+            type="button"
+            className={styles.load}
+            onClick={handleLoadMorePosts}
+          >
             Carregar mais posts
-          </p>
+          </button>
         ) : (
           ''
         )}
 
-        <button type="button">Sair do preview</button>
+        <button className={styles.preview} type="button">
+          Sair do preview
+        </button>
       </main>
     </>
   );

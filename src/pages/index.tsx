@@ -11,6 +11,7 @@ import { Info } from '../components/Info';
 import { getPrismicClient } from '../services/prismic';
 
 import styles from './home.module.scss';
+import { PreviewButton } from '../components/PreviewButton';
 
 interface Post {
   uid?: string;
@@ -104,9 +105,7 @@ export default function Home(props: HomeProps): JSX.Element {
           ''
         )}
 
-        <button className={styles.preview} type="button">
-          Sair do preview
-        </button>
+        <PreviewButton />
       </main>
     </>
   );

@@ -8,10 +8,12 @@ import ptBR from 'date-fns/locale/pt-BR';
 
 import { Navigation } from '../../components/Navigation';
 import { Info } from '../../components/Info';
+import { UtterancesComments } from '../../components/UtterancesComments';
 import { calculateReadingTime } from '../../utils/calculateReadingTime';
 import { getPrismicClient } from '../../services/prismic';
 
 import styles from './post.module.scss';
+import { PreviewButton } from '../../components/PreviewButton';
 
 interface Post {
   uid?: string;
@@ -105,6 +107,10 @@ export default function Post({ post, navigation }: PostProps): JSX.Element {
             nextPost={navigation?.nextPost}
             previousPost={navigation?.previousPost}
           />
+
+          <UtterancesComments />
+
+          <PreviewButton />
         </article>
       </main>
     </>

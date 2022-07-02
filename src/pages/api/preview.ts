@@ -35,5 +35,6 @@ export default async (
     <script>window.location.href = '${redirectUrl}'</script>
     </head>`
   );
-  res.end();
+  // res.end();
+  return res.end();
 };

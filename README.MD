@@ -4,4 +4,4 @@
 
 ---
 
-### Aplicação desenvolvida para resolução do desafio 5 do bootcamp Ignite - Trilha React. O blog foi criado utilizando-se Typescript, Next.js, SCSS para estilização e, para armazenamento dos artigos, o Prismic CMS.
+### Aplicação desenvolvida para resolução do desafio 5 do bootcamp Ignite - Trilha React. O blog foi criado utilizando-se Typescript, Next.js, SCSS para estilização e o Prismic CMS para armazenamento dos artigos.
